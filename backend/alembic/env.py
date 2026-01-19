@@ -27,10 +27,10 @@ if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
 # Import your models here for autogenerate support
-# from app.db.models import Base
-# target_metadata = Base.metadata
+from app.db.base import Base
+from app.db.models import User, Resume, Analysis  # noqa: F401
 
-target_metadata = None  # Will be set when models are created
+target_metadata = Base.metadata
 
 
 def run_migrations_offline() -> None:
