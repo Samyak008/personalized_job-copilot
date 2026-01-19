@@ -54,4 +54,9 @@ async def root():
     }
 
 
+from app.api import api_router
+
+app.include_router(api_router, prefix="/api/v1")
+
+
 logger.info("ApplyWise API initialized")

@@ -17,6 +17,9 @@ class Settings(BaseSettings):
     supabase_key: str = ""
     database_url: str
 
+    # Supabase Auth
+    supabase_jwt_secret: str = ""  # Required for JWT validation
+
     # LLM Provider Configuration
     openrouter_api_key: str
     openrouter_base_url: str = "https://openrouter.ai/api/v1"
