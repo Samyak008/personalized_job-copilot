@@ -18,3 +18,8 @@ __all__ = [
     "FileExtractionError",
     "SUPPORTED_EXTENSIONS",
 ]
+
+# JSON Parsing
+from app.utils.json_parsing import extract_json_from_response
+
+__all__.append("extract_json_from_response")
