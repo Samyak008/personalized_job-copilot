@@ -22,8 +22,8 @@ class PipelineResult:
     resume_data: ParsedResumeData
     job_data: ParsedJobData
     match_analysis: MatchAnalysis
-    strategy: ImprovementStrategy
-    content: GeneratedContent
+    strategy: Optional[ImprovementStrategy] = None
+    content: Optional[GeneratedContent] = None
 
 
 async def run_analysis_pipeline(
@@ -53,16 +53,21 @@ async def run_analysis_pipeline(
     logger.debug("Step 2: Analyzing Skill Gap")
     match_analysis = await analyze_skill_gap(resume_data, job_data)
     
-    # Step 3: Strategy & Content (Parallel, dependent on Gap Analysis)
-    logger.debug("Step 3: Generating Strategy and Content")
-    strategy_task = plan_strategy(match_analysis, job_data)
+    # Step 3: Strategy & Content (dependent on Gap Analysis)
+    # Wrapped in try/except to be robust against LLM failures (500s)
+    strategy = None
+    content = None
     
-    # Wait for strategy first? Or run content in parallel?
-    # Content gen needs strategy for "focus_areas"
-    strategy = await strategy_task
-    
-    content_task = generate_content(resume_data, job_data, strategy)
-    content = await content_task
+    try:
+        logger.debug("Step 3: Generating Strategy")
+        strategy = await plan_strategy(match_analysis, job_data)
+        
+        logger.debug("Step 4: Generating Content")
+        content = await generate_content(resume_data, job_data, strategy)
+        
+    except Exception as e:
+        logger.error(f"Strategy/Content generation failed: {e}")
+        # We continue with partial results (Analysis Score matches)
     
     logger.info(f"Pipeline complete. Match Score: {match_analysis.match_score}/100")
     
@@ -85,23 +90,30 @@ async def run_file_analysis_pipeline(
     """
     logger.info(f"Starting analysis pipeline (File Mode: {filename})")
     
-    # We can reuse the same logic, just starting with parse_resume_file
+    # Step 1: Parse
     logger.debug("Step 1: Parsing Resume File and Job Description")
     resume_task = parse_resume_file(file_content, filename)
     job_task = analyze_job_description(job_description)
     
     resume_data, job_data = await asyncio.gather(resume_task, job_task)
     
-    # Continue with logic... (duplicated for clarity/flexibility)
+    # Step 2: Analysis
     logger.debug("Step 2: Analyzing Skill Gap")
     match_analysis = await analyze_skill_gap(resume_data, job_data)
     
-    logger.debug("Step 3: Generating Strategy")
-    strategy = await plan_strategy(match_analysis, job_data)
+    # Step 3 & 4: Strategy/Content (Partial Failure Allowed)
+    strategy = None
+    content = None
     
-    logger.debug("Step 4: Generating Content")
-    content = await generate_content(resume_data, job_data, strategy)
-    
+    try:
+        logger.debug("Step 3: Generating Strategy")
+        strategy = await plan_strategy(match_analysis, job_data)
+        
+        logger.debug("Step 4: Generating Content")
+        content = await generate_content(resume_data, job_data, strategy)
+    except Exception as e:
+        logger.error(f"Strategy/Content generation failed: {e}")
+
     logger.info(f"Pipeline complete. Match Score: {match_analysis.match_score}/100")
     
     return PipelineResult(

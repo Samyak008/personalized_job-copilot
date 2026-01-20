@@ -21,7 +21,7 @@ class Experience(BaseModel):
     company: str = Field(..., description="Company or organization name")
     title: str = Field(..., description="Job title or role")
     duration: str = Field(..., description="Time period (e.g., 'Jan 2020 - Present')")
-    description: str = Field(default="", description="Key responsibilities and achievements")
+    description: Optional[str] = Field(default=None, description="Key responsibilities and achievements")
     technologies: List[str] = Field(default_factory=list, description="Technologies/tools used")
 
 
@@ -60,7 +60,7 @@ JSON_SCHEMA = """{
       "company": "string (required)",
       "title": "string (required)",
       "duration": "string (required)",
-      "description": "string",
+      "description": "string or null",
       "technologies": ["array of strings"]
     }
   ],

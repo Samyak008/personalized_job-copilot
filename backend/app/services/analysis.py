@@ -93,11 +93,11 @@ class AnalysisService:
                 
                 match_score=result.match_analysis.match_score,
                 skill_gaps=skill_gaps,
-                suggestions=result.strategy.resume_improvements, # Map generated improvements
+                suggestions=result.strategy.resume_improvements if result.strategy else [],
                 
-                cold_email=result.content.cold_email,
-                linkedin_dm=result.content.linkedin_dm,
-                interview_questions=result.content.interview_questions
+                cold_email=result.content.cold_email if result.content else None,
+                linkedin_dm=result.content.linkedin_dm if result.content else None,
+                interview_questions=result.content.interview_questions if result.content else []
             )
             
             return await self.repo.create(analysis)
