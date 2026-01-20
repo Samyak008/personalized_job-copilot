@@ -1,0 +1,20 @@
+name: Render Keep-Alive
+
+on:
+  schedule:
+    - cron: '*/10 * * * *'  # Run every 10 minutes
+  workflow_dispatch:        # Allow manual triggering
+
+jobs:
+  ping_server:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Render Backend
+        run: |
+          response=$(curl -s -o /dev/null -w "%{http_code}" https://personalized-job-copilot.onrender.com/health)
+          if [ "$response" -eq 200 ]; then
+            echo "✅ Server is UP (Status: $response)"
+          else
+            echo "❌ Server might be DOWN or Sleeping (Status: $response)"
+            exit 1
+          fi

@@ -11,12 +11,16 @@ import sys
 
 from app.core.config import settings
 
-# Configure loguru
+from asgi_correlation_id import CorrelationIdMiddleware
+from asgi_correlation_id.context import correlation_id
+
+# Configure loguru with Correlation ID
 logger.remove()
 logger.add(
     sys.stderr,
-    format="<green>{time:YYYY-MM-DD HH:mm:ss}</green> | <level>{level: <8}</level> | <cyan>{name}</cyan>:<cyan>{function}</cyan>:<cyan>{line}</cyan> - <level>{message}</level>",
+    format="<green>{time:YYYY-MM-DD HH:mm:ss}</green> | <level>{level: <8}</level> | <magenta>[req:{extra[request_id]}]</magenta> | <cyan>{name}</cyan>:<cyan>{function}</cyan>:<cyan>{line}</cyan> - <level>{message}</level>",
     level=settings.log_level,
+    filter=lambda record: record["extra"].update(request_id=correlation_id.get() or "N/A"),
 )
 
 app = FastAPI(
@@ -28,7 +32,8 @@ app = FastAPI(
     openapi_url="/api/openapi.json",
 )
 
-# CORS Middleware
+# CORS Middleware (Must be last to handle OPTIONS correctly before correlation middleware?)
+# Actually correlation middleware should best be first to catch everything.
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.get_allowed_origins_list(),
@@ -36,6 +41,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Request Tracing Middleware
+app.add_middleware(CorrelationIdMiddleware)
 
 
 @app.get("/health", tags=["Health"])
