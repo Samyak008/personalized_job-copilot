@@ -43,7 +43,7 @@ class Settings(BaseSettings):
 
     def get_allowed_origins_list(self) -> List[str]:
         """Return allowed origins as a list."""
-        return [origin.strip() for origin in self.allowed_origins.split(",")]
+        return [origin.strip().rstrip("/") for origin in self.allowed_origins.split(",")]
 
     class Config:
         env_file = ".env"
