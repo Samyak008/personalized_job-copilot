@@ -33,6 +33,21 @@ class Education(BaseModel):
     year: Optional[str] = Field(None, description="Graduation year or period")
 
 
+class Project(BaseModel):
+    """Project entry."""
+    name: str = Field(..., description="Project name")
+    description: Optional[str] = Field(None, description="Project description and key outcomes")
+    technologies: List[str] = Field(default_factory=list, description="Technologies used")
+    url: Optional[str] = Field(None, description="Link to project (GitHub, etc.)")
+
+
+class Activity(BaseModel):
+    """Extracurricular activity or achievement."""
+    title: str = Field(..., description="Role or Title")
+    organization: Optional[str] = Field(None, description="Organization name")
+    description: Optional[str] = Field(None, description="Description of the activity/achievement")
+
+
 class ParsedResumeData(BaseModel):
     """Complete structured resume data extracted by AI."""
     name: str = Field(..., description="Candidate's full name")
@@ -43,6 +58,8 @@ class ParsedResumeData(BaseModel):
     skills: List[str] = Field(default_factory=list, description="Technical and soft skills")
     experience: List[Experience] = Field(default_factory=list, description="Work experience")
     education: List[Education] = Field(default_factory=list, description="Education history")
+    projects: List[Project] = Field(default_factory=list, description="Academic or personal projects")
+    extra_curricular: List[Activity] = Field(default_factory=list, description="Extracurricular activities, clubs, or achievements")
     certifications: List[str] = Field(default_factory=list, description="Professional certifications")
     languages: List[str] = Field(default_factory=list, description="Languages spoken")
 
@@ -72,6 +89,21 @@ JSON_SCHEMA = """{
       "year": "string or null"
     }
   ],
+  "projects": [
+    {
+      "name": "string (required)",
+      "description": "string",
+      "technologies": ["array of strings"],
+      "url": "string or null"
+    }
+  ],
+  "extra_curricular": [
+    {
+      "title": "string (required)",
+      "organization": "string",
+      "description": "string"
+    }
+  ],
   "certifications": ["array of strings"],
   "languages": ["array of strings"]
 }"""
@@ -83,9 +115,10 @@ Instructions:
 1. Extract ALL relevant information accurately
 2. For skills, include both technical skills (Python, React) and soft skills (leadership, communication)
 3. For experience, identify the company, title, duration, and key achievements
-4. If information is not present or unclear, use null/empty values - do not make up data
-5. Ensure dates and durations are formatted consistently
-6. Extract technologies mentioned in job descriptions into the technologies field
+4. EXTRACT PROJECTS: Identify academic or personal projects, describing what was built and technologies used.
+5. EXTRACT EXTRACURRICULARS: Identify clubs, leadership roles, hackathons, and volunteering.
+6. If information is not present or unclear, use null/empty values - do not make up data
+7. Ensure dates and durations are formatted consistently
 
 IMPORTANT: You MUST respond with ONLY valid JSON. No markdown, no explanations, just pure JSON.
 

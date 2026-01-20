@@ -8,6 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import HTTPException, status
 from uuid import UUID
 from typing import List
+import sys
 
 from app.db.repositories.base import BaseRepository
 from app.db.models import Analysis, Resume, User
@@ -103,6 +104,10 @@ class AnalysisService:
             return await self.repo.create(analysis)
             
         except Exception as e:
+            import traceback
+            error_trace = traceback.format_exc()
+            print(f"CRITICAL PIPELINE ERROR:\n{error_trace}", file=sys.stderr)  # Force print to stderr
+            
             # Log the full error here in a real app
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
